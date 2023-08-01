@@ -15,7 +15,7 @@ const sequelize = require('./models/index.js').sequelize;
 
 // async IIFE
 (async () => {
-  await sequelize.sync({ force: true });
+  await sequelize.sync;
   try {
     // Use the sequelize.authenticate() method to asynchronously connect to the database and log out a message indicating that a connection has/hasn’t been established
     await sequelize.authenticate();
