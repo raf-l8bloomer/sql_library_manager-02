@@ -16,7 +16,8 @@ function asyncHandler(cb) {
 /* GET home page. */
 router.get('/', asyncHandler(async (req, res) => {
   const books = await Book.findAll();
-  console.log(books.toJSON());
+  console.log(books);
+  res.json({books});
   // res.render('index', { books,  title: "Express"});
 }
 ));
