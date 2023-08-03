@@ -15,27 +15,6 @@ function asyncHandler(cb) {
   }
 }
 
-/* 404 handler to catch undefined or non-existent route requests */
-router.use((req, res, next) => {
-  const error = new Error();
-  error.status = 404;
-  error.message = 'This is a 404 and the route does not exist.';
-  res.render('page-not-found', { error });
-})
-
-/* Global error handler */
-router.use((err, req, res, next) => {
-
-  if (err === 404) {
-    res.render('page-not-found', { error: err });
-    console.log('Global error handler called', err)
-  } else {
-    error.status = 500;
-    err.message = 'This is a 500 and the global error handler has been called.';
-    res.render('error', { err });
-  }
-})
-
 /* GET home page. */
 router.get('/', asyncHandler(async (req, res) => {
   // Asynchronously use the findAll() method on the Book model to get all the books, and store them in a variable
@@ -46,4 +25,24 @@ router.get('/', asyncHandler(async (req, res) => {
 }
 ));
 
+/* 404 handler to catch undefined or non-existent route requests */
+router.use((req, res, next) => {
+  const err = new Error('This route does not exist.');
+  err.status = 404;
+  next(err);
+})
+
+/* Global error handler */
+router.use((err, req, res, next) => {
+
+  if (err.status === 404) {
+    res.status(404).render('page-not-found', {title: 'Page Not Found', err})
+  } else {
+    err.message = err.message || 'Oops! It looks like something went wrong with the server';
+    res.status(err.status || 500).render('server-error', {title: 'Page Not Found', err});
+  }
+})
+
 module.exports = router;
+
+/* Hey diva, you're on number 8 and have to set up the routes. Follow the routes from the last project. They should look identical*/
