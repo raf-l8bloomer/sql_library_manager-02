@@ -15,15 +15,49 @@ function asyncHandler(cb) {
   }
 }
 
-/* GET home page. */
+/* GET books page. */
 router.get('/', asyncHandler(async (req, res) => {
-  // Asynchronously use the findAll() method on the Book model to get all the books, and store them in a variable
-
-  const books = await Book.findAll();
-  res.json({ books });
-  // res.render('index', { books,  title: "Express"});
+  // redirects to /books route
+  res.redirect('/books');
 }
 ));
+
+/*get /books - Shows the full list of books*/
+router.get('/books', asyncHandler(async (req, res) => {
+  // asynchronously saves all book data from library.db into books
+  const books = await Book.findAll();
+  // renders all book info into books.pug
+  res.render('books', { books, title: 'Books'});
+}));
+
+/*get /books/new - Shows the create new book form*/
+router.get('/books/new', asyncHandler(async (req,res) => {
+  res.render('new', {book: {}, title: "New Book"} )
+}))
+
+/* post /books/new - Posts a new book to the database */
+router.post('/books/new', asyncHandler(async (req, res) => {
+  const book = await Book.create(req.body);
+  res.redirect('/books/' + book.id);
+}))
+
+/*get /books/:id - Shows book detail form*/
+router.get('/books/:id', asyncHandler(async (req,res) => {
+  const book = await Book.findByPk(req.params.id);
+  res.render('update-book', {book, title: 'Update Book'})
+}))
+
+
+/* post /books/:id - Updates book info in the database */
+router.post('/books/:id', asyncHandler(async (req,res) => {
+  const book = await Book.findByPk(req.params.id);
+  res.redirect('update-book');
+}))
+
+/* post /books/:id/delete - Deletes a book. Be careful, this can’t be undone. It can be helpful to create a new “test” book to test deleting */
+router.post('/books:id/delete', asyncHandler(async (req,res) => {
+
+}))
 
 /* 404 handler to catch undefined or non-existent route requests */
 router.use((req, res, next) => {
@@ -34,12 +68,12 @@ router.use((req, res, next) => {
 
 /* Global error handler */
 router.use((err, req, res, next) => {
-
   if (err.status === 404) {
-    res.status(404).render('page-not-found', {title: 'Page Not Found', err})
+    res.status(404).render('page-not-found', { title: 'Page Not Found', err })
   } else {
     err.message = err.message || 'Oops! It looks like something went wrong with the server';
-    res.status(err.status || 500).render('server-error', {title: 'Page Not Found', err});
+    console.log(err);
+    res.status(err.status || 500).render('error', { title: 'Page Not Found', err });
   }
 })
 
