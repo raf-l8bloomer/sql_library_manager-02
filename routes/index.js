@@ -51,12 +51,21 @@ router.get('/books/:id', asyncHandler(async (req,res) => {
 /* post /books/:id - Updates book info in the database */
 router.post('/books/:id', asyncHandler(async (req,res) => {
   const book = await Book.findByPk(req.params.id);
-  res.redirect('update-book');
+  await book.update(req.body);
+  res.redirect('/books/');
 }))
 
 /* post /books/:id/delete - Deletes a book. Be careful, this can’t be undone. It can be helpful to create a new “test” book to test deleting */
-router.post('/books:id/delete', asyncHandler(async (req,res) => {
+router.get('/books/:id/delete', asyncHandler(async (req,res) => {
+  const book = await Book.findByPk(req.params.id);
+  res.render('/books/'+ book.id + '/delete'), {book};
+}))
 
+/* post /books/:id/delete - Deletes a book. Be careful, this can’t be undone. It can be helpful to create a new “test” book to test deleting */
+router.post('/books/:id/delete', asyncHandler(async (req,res) => {
+  const book = await Book.findByPk(req.params.id);
+  await book.destroy();
+  res.redirect('/books/');
 }))
 
 /* 404 handler to catch undefined or non-existent route requests */
