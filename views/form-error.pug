@@ -1,9 +1,6 @@
-extends layout 
-
-block content 
-    h1 New Book
-    form
-        h2.error Oooops!
-        ul.error
-            li Title is required
-            li Author is required 
+if (errors)
+    h2.errors Oooops!
+    ul.errors
+        each error in errors
+            li
+                =error.message

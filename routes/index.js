@@ -4,7 +4,7 @@ var router = express.Router();
 
 const Book = require('../models').Book;
 
-// async wrapper 
+// async wrapper for simpler error handling
 function asyncHandler(cb) {
   return async (req, res, next) => {
     try {
@@ -15,54 +15,66 @@ function asyncHandler(cb) {
   }
 }
 
-/* GET books page. */
+/* root route redirects to book list*/
 router.get('/', asyncHandler(async (req, res) => {
   // redirects to /books route
   res.redirect('/books');
 }
 ));
 
-/*get /books - Shows the full list of books*/
+/*get books from library.db - shows the full list of books*/
 router.get('/books', asyncHandler(async (req, res) => {
   // asynchronously saves all book data from library.db into books
   const books = await Book.findAll();
   // renders all book info into books.pug
-  res.render('books', { books, title: 'Books'});
+  res.render('books', { books, title: 'Books' });
 }));
 
-/*get /books/new - Shows the create new book form*/
-router.get('/books/new', asyncHandler(async (req,res) => {
-  res.render('new', {book: {}, title: "New Book"} )
+/*shows new book form with empty fields*/
+router.get('/books/new', asyncHandler(async (req, res) => {
+  res.render('new', { book: {}, title: "New Book" })
 }))
 
-/* post /books/new - Posts a new book to the database */
+/* saves inputted book data into the library db. */
 router.post('/books/new', asyncHandler(async (req, res) => {
-  const book = await Book.create(req.body);
-  res.redirect('/books/' + book.id);
-}))
+  let book;
+  /* validates title and author input form fields before saving to db*/
+  try {
+    book = await Book.create(req.body);
+    res.redirect('/books/' + book.id);
+  } catch (error) {
+    if (error.name === 'SequelizeValidationError') {
+      book = await Book.build(req.body);
+      res.render('new', { book, errors: error.errors, title: "New Book" });
+    } else {
+      throw error;
+    }
+  }
+}
+));
 
-/*get /books/:id - Shows book detail form*/
-router.get('/books/:id', asyncHandler(async (req,res) => {
+/* pulls individual book's id*/
+router.get('/books/:id', asyncHandler(async (req, res) => {
   const book = await Book.findByPk(req.params.id);
-  res.render('update-book', {book, title: 'Update Book'})
+  res.render('update-book', { book, title: 'Update Book' })
 }))
 
 
-/* post /books/:id - Updates book info in the database */
-router.post('/books/:id', asyncHandler(async (req,res) => {
+/* allows editing of book by id and saves update to db*/
+router.post('/books/:id', asyncHandler(async (req, res) => {
   const book = await Book.findByPk(req.params.id);
   await book.update(req.body);
   res.redirect('/books/');
 }))
 
-/* post /books/:id/delete - Deletes a book. Be careful, this can’t be undone. It can be helpful to create a new “test” book to test deleting */
-router.get('/books/:id/delete', asyncHandler(async (req,res) => {
+/* pulls infividual book data to allow for deleting confirmation */
+router.get('/books/:id/delete', asyncHandler(async (req, res) => {
   const book = await Book.findByPk(req.params.id);
-  res.render('/books/'+ book.id + '/delete'), {book};
+  res.render('/books/' + book.id + '/delete'), { book };
 }))
 
-/* post /books/:id/delete - Deletes a book. Be careful, this can’t be undone. It can be helpful to create a new “test” book to test deleting */
-router.post('/books/:id/delete', asyncHandler(async (req,res) => {
+/* successfully deletes the book from db */
+router.post('/books/:id/delete', asyncHandler(async (req, res) => {
   const book = await Book.findByPk(req.params.id);
   await book.destroy();
   res.redirect('/books/');
@@ -87,5 +99,3 @@ router.use((err, req, res, next) => {
 })
 
 module.exports = router;
-
-/* Hey diva, you're on number 8 and have to set up the routes. Follow the routes from the last project. They should look identical*/
