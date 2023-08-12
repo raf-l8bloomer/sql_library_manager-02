@@ -62,9 +62,20 @@ router.get('/books/:id', asyncHandler(async (req, res) => {
 
 /* allows editing of book by id and saves update to db*/
 router.post('/books/:id', asyncHandler(async (req, res) => {
-  const book = await Book.findByPk(req.params.id);
-  await book.update(req.body);
-  res.redirect('/books/');
+  let book;
+  try {
+    book = await Book.findByPk(req.params.id);
+    await book.update(req.body);
+    res.redirect('/books/');
+  } catch (error) {
+    if (error.name === 'SequelizeValidationError') {
+      book = await Book.findByPk(req.params.id);
+      res.render('update-book', { book, errors: error.errors, title: "Update Book" });
+    } else {
+      throw error;
+    }
+  }
+  
 }))
 
 /* pulls infividual book data to allow for deleting confirmation */
